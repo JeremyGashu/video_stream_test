@@ -5,6 +5,7 @@ import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 class Videos extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // print(Theme.of(context).platform);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -14,15 +15,18 @@ class Videos extends StatelessWidget {
           future: parseHLS(),
           builder: (_, snapShot) {
             HlsMasterPlaylist masterPlaylist;
+            HlsMediaPlaylist mediaPlaylist;
             if (snapShot.data is HlsMasterPlaylist) {
               masterPlaylist = snapShot.data;
+            } else {
+              mediaPlaylist = snapShot.data;
             }
 
             return snapShot.hasData
                 ? snapShot.data is HlsMediaPlaylist
                     ? GridView.extent(
                         maxCrossAxisExtent: 400,
-                        children: snapShot.data.segments.map((segment) {
+                        children: mediaPlaylist.segments.map((segment) {
                           return Card(
                               elevation: 10,
                               child: GestureDetector(

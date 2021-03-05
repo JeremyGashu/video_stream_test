@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:encryption_test/musics_page.dart';
 import 'package:encryption_test/videos.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 String mu38String = """
 #EXTM3U
@@ -198,6 +201,8 @@ void main() async {
     ),
     home: HomeScreen(),
   ));
+  String a = await _localPath();
+  print(a);
 }
 
 class HomeScreen extends StatefulWidget {
@@ -262,4 +267,14 @@ class _HlsParsingState extends State<HlsParsing> {
       ),
     );
   }
+}
+
+Future<String> _localPath() async {
+  Directory directory;
+  try {
+    directory = await getApplicationDocumentsDirectory();
+  } catch (e) {
+    print(e.toString());
+  }
+  return directory?.path;
 }

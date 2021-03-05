@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
-import 'package:encryption_test/custom_video_controller.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
@@ -9,6 +11,8 @@ import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
+
+final httpClient = new HttpClient();
 
 class VideoApp extends StatefulWidget {
   final String videoLink;
@@ -45,63 +49,66 @@ class _VideoAppState extends State<VideoApp> {
 
   @override
   Widget build(BuildContext context) {
+    GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
     return Scaffold(
+      key: _key,
       appBar: AppBar(
-        title: Text('Video'),
+        centerTitle: true,
+        title: Text('Movie Name'),
       ),
       body: _controller.value.initialized
-          ? FutureBuilder(
-              future: parseHLS(),
-              builder: (ctx, snapShot) {
-                //check if the data is available before displaying it on the screen
-                if (snapShot.hasData) {
-                  // print(snapShot.data.segments.length);
-                  // print(snapShot.data.segments[4].url);
-
-                  // _controller
-                }
-                //todo it must be null aware in all the conditions
-                return snapShot.hasData
-                    ? GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _controller.value.isPlaying
-                                ? _controller.pause()
-                                : _controller.play();
-                          });
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              children: [
-                                AspectRatio(
-                                  aspectRatio: _controller.value.aspectRatio,
-                                  child: VideoPlayer(_controller),
-                                ),
-                                CustomController(
-                                  controller: _controller,
-                                ),
-                              ],
+          ? SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomController(
+                              controller: _controller,
                             ),
-                            SizedBox(
-                              height: 30,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 3, horizontal: 10),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.file_download,
+                                size: 25,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () async {
+                                File downloadedFile = await _downloadFile(
+                                    widget.videoLink, 'test.ts');
+                                print(downloadedFile);
+                              },
                             ),
-                            Wrap(
-                              children: [
-                                Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Text('Link ===>')),
-                                Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Text('${widget.videoLink}')),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    : Center(child: CircularProgressIndicator());
-              },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Wrap(
+                    children: [
+                      Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Text('Link ===>')),
+                      Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Text('${widget.videoLink}')),
+                    ],
+                  ),
+                ],
+              ),
             )
           : Center(child: CircularProgressIndicator()),
     );
@@ -305,7 +312,7 @@ logCallBack(Log log){
 parseHLS() async {
   try {
     final String fileData =
-        await rootBundle.loadString('assets/master_playlist.m3u8');
+        await rootBundle.loadString('assets/play_test.m3u8');
     Uri playlistUri;
     var playlist;
     playlist =
@@ -314,4 +321,14 @@ parseHLS() async {
   } catch (e) {
     print(e);
   }
+}
+
+Future<File> _downloadFile(String url, String filename) async {
+  var request = await httpClient.getUrl(Uri.parse(url));
+  var response = await request.close();
+  var bytes = await consolidateHttpClientResponseBytes(response);
+  String dir = (await getApplicationDocumentsDirectory()).path;
+  File file = new File('$dir/$filename');
+  await file.writeAsBytes(bytes);
+  return file;
 }
