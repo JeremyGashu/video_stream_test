@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:encryption_test/custom_video_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
@@ -109,172 +110,16 @@ class _VideoAppState extends State<VideoApp> {
   }
 }
 
-class CustomProgressBarIndicator extends StatefulWidget {
-  final VideoPlayerController controller;
-  CustomProgressBarIndicator({this.controller});
-  @override
-  _CustomProgressBarIndicatorState createState() =>
-      _CustomProgressBarIndicatorState();
-}
-
-class _CustomProgressBarIndicatorState
-    extends State<CustomProgressBarIndicator> {
-  double value = 0;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      child: FutureBuilder(
-        builder: (_, durationData) {
-          return FutureBuilder(
-            future: widget.controller.position,
-            builder: (_, snapShot) {
-              return snapShot.hasData
-                  ? Slider(
-                      value: snapShot.data.inSeconds.toDouble(),
-                      min: 0,
-                      max:
-                          widget.controller.value.duration.inSeconds.toDouble(),
-                      onChanged: (val) {
-                        setState(() {
-                          int a = val.roundToDouble().toInt();
-                          widget.controller.seekTo(Duration(seconds: a));
-                        });
-                      })
-                  : Slider(
-                      min: 0,
-                      max:
-                          widget.controller.value.duration.inSeconds.toDouble(),
-                      value: value,
-                      onChanged: (val) {
-                        setState(() {
-                          value = val;
-                        });
-                      });
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class CustomController extends StatefulWidget {
-  final VideoPlayerController controller;
-  CustomController({@required this.controller});
-
-  @override
-  _CustomControllerState createState() => _CustomControllerState();
-}
-
-class _CustomControllerState extends State<CustomController> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      width: double.infinity,
-      child: Column(
-        children: [
-          CustomProgressBarIndicator(
-            controller: this.widget.controller,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                  icon: Icon(
-                    Icons.skip_previous,
-                    size: 45,
-                    color: Colors.blue,
-                  ),
-                  onPressed: () async {
-                    Duration currentPosition =
-                        await this.widget.controller.position;
-                    Duration seekTime = Duration(seconds: 10);
-                    setState(() {
-                      currentPosition.inSeconds - seekTime.inSeconds > 5
-                          ? this.widget.controller.seekTo(Duration(
-                              seconds: (currentPosition.inSeconds -
-                                  seekTime.inSeconds)))
-                          : this.widget.controller.seekTo(Duration(seconds: 0));
-                    });
-
-                    // DateTime a = DateTime.now();
-                  }),
-              IconButton(
-                  icon: widget.controller.value.isPlaying
-                      ? Icon(
-                          Icons.pause,
-                          size: 45,
-                          color: Colors.blue,
-                        )
-                      : Icon(
-                          Icons.play_arrow,
-                          size: 45,
-                          color: Colors.blue,
-                        ),
-                  onPressed: () {
-                    setState(() {
-                      this.widget.controller.value.isPlaying
-                          ? this.widget.controller.pause()
-                          : this.widget.controller.play();
-                    });
-                  }),
-              IconButton(
-                  icon: Icon(
-                    Icons.skip_next,
-                    size: 45,
-                    color: Colors.blue,
-                  ),
-                  onPressed: () async {
-                    Duration currentPosition =
-                        await this.widget.controller.position;
-                    Duration seekTime = Duration(seconds: 5);
-
-                    setState(() {
-                      currentPosition.inSeconds + seekTime.inSeconds <
-                              this.widget.controller.value.duration.inSeconds
-                          ? this.widget.controller.seekTo(Duration(
-                              seconds: (currentPosition.inSeconds +
-                                  seekTime.inSeconds)))
-                          // ignore: unnecessary_statements
-                          : null;
-                    });
-                  }),
-              IconButton(
-                icon: Icon(
-                  Icons.file_download,
-                  size: 35,
-                  color: Colors.redAccent,
-                ),
-                onPressed: () {
-                  //download task will be added here
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    content: Text('Downloading...'),
-                    duration: Duration(
-                      milliseconds: 600,
-                    ),
-                  ));
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 parseHLS() async {
-  final String fileData = await rootBundle.loadString('assets/play_test.m3u8');
-  // print(fileData.length);
-  Uri playlistUri;
-  var playList;
   try {
-    playList =
+    final String fileData =
+        await rootBundle.loadString('assets/master_playlist.m3u8');
+    Uri playlistUri;
+    var playlist;
+    playlist =
         await HlsPlaylistParser.create().parseString(playlistUri, fileData);
-  } on ParserException catch (e) {
+    return playlist;
+  } catch (e) {
     print(e);
   }
-  return playList;
 }
