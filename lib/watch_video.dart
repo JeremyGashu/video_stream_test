@@ -1,11 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:encryption_test/custom_video_controller.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
+
+final httpClient = new HttpClient();
 
 class VideoApp extends StatefulWidget {
   final String videoLink;
@@ -76,13 +81,10 @@ class _VideoAppState extends State<VideoApp> {
                                 size: 25,
                                 color: Colors.redAccent,
                               ),
-                              onPressed: () {
-                                _key.currentState.showSnackBar(SnackBar(
-                                  content: Text('Downloading...'),
-                                  duration: Duration(
-                                    milliseconds: 600,
-                                  ),
-                                ));
+                              onPressed: () async {
+                                File downloadedFile = await _downloadFile(
+                                    widget.videoLink, 'test.ts');
+                                print(downloadedFile);
                               },
                             ),
                           ),
@@ -120,7 +122,7 @@ class _VideoAppState extends State<VideoApp> {
 parseHLS() async {
   try {
     final String fileData =
-        await rootBundle.loadString('assets/master_playlist.m3u8');
+        await rootBundle.loadString('assets/play_test.m3u8');
     Uri playlistUri;
     var playlist;
     playlist =
@@ -129,4 +131,14 @@ parseHLS() async {
   } catch (e) {
     print(e);
   }
+}
+
+Future<File> _downloadFile(String url, String filename) async {
+  var request = await httpClient.getUrl(Uri.parse(url));
+  var response = await request.close();
+  var bytes = await consolidateHttpClientResponseBytes(response);
+  String dir = (await getApplicationDocumentsDirectory()).path;
+  File file = new File('$dir/$filename');
+  await file.writeAsBytes(bytes);
+  return file;
 }
