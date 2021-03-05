@@ -98,22 +98,6 @@ class _CustomControllerState extends State<CustomController> {
                           : null;
                     });
                   }),
-              IconButton(
-                icon: Icon(
-                  Icons.file_download,
-                  size: 45,
-                  color: Colors.redAccent,
-                ),
-                onPressed: () {
-                  //download task will be added here
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    content: Text('Downloading...'),
-                    duration: Duration(
-                      milliseconds: 600,
-                    ),
-                  ));
-                },
-              ),
             ],
           ),
         ],
