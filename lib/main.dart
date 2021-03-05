@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:encryption_test/musics_page.dart';
+import 'package:encryption_test/play_from_file.dart';
 import 'package:encryption_test/videos.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 String mu38String = """
 #EXTM3U
@@ -201,8 +199,7 @@ void main() async {
     ),
     home: HomeScreen(),
   ));
-  String a = await _localPath();
-  print(a);
+  // await _localPath();
 }
 
 class HomeScreen extends StatefulWidget {
@@ -215,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> _widgets = [
     Videos(),
     MusicPage(),
-    Placeholder(),
+    FromFile(),
   ];
   @override
   Widget build(BuildContext context) {
@@ -248,33 +245,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-class HlsParsing extends StatefulWidget {
-  @override
-  _HlsParsingState createState() => _HlsParsingState();
-}
-
-class _HlsParsingState extends State<HlsParsing> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'HLS Parsing',
-        ),
-      ),
-    );
-  }
-}
-
-Future<String> _localPath() async {
-  Directory directory;
-  try {
-    directory = await getApplicationDocumentsDirectory();
-  } catch (e) {
-    print(e.toString());
-  }
-  return directory?.path;
 }

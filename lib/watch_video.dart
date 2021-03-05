@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aes_crypt/aes_crypt.dart';
 import 'package:encryption_test/custom_video_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -82,9 +83,21 @@ class _VideoAppState extends State<VideoApp> {
                                 color: Colors.redAccent,
                               ),
                               onPressed: () async {
+                                String newFileName =
+                                    widget.videoLink.split('/').last;
+
+                                print('Download started');
                                 File downloadedFile = await _downloadFile(
-                                    widget.videoLink, 'test.ts');
-                                print(downloadedFile);
+                                    widget.videoLink, newFileName, context);
+                                //do the encryption here
+                                print(
+                                    'Download finished and encryption started');
+                                await encryptFile(downloadedFile.path);
+
+                                await downloadedFile.delete();
+
+                                print(
+                                    'File Downloaded, Encrypted and Deleted...');
                               },
                             ),
                           ),
@@ -133,12 +146,38 @@ parseHLS() async {
   }
 }
 
-Future<File> _downloadFile(String url, String filename) async {
+Future<File> _downloadFile(
+    String url, String filename, BuildContext context) async {
   var request = await httpClient.getUrl(Uri.parse(url));
   var response = await request.close();
   var bytes = await consolidateHttpClientResponseBytes(response);
-  String dir = (await getApplicationDocumentsDirectory()).path;
+  String dir = (Theme.of(context).platform == TargetPlatform.android
+          ? await getExternalStorageDirectory()
+          : await getApplicationDocumentsDirectory())
+      .path;
   File file = new File('$dir/$filename');
   await file.writeAsBytes(bytes);
   return file;
+}
+
+encryptFile(String filePath) async {
+  var crypt = AesCrypt('auto_generate_for_later_use');
+  crypt.setOverwriteMode(AesCryptOwMode.rename);
+  try {
+    await crypt.encryptFile(filePath);
+    print('File encrypted...');
+  } catch (e) {
+    print(e);
+  }
+}
+
+decryptFile(String filePath) async {
+  var crypt = AesCrypt('auto_generate_for_later_use');
+  crypt.setOverwriteMode(AesCryptOwMode.rename);
+  try {
+    await crypt.decryptFile(filePath);
+    print('File Decrypted..');
+  } catch (e) {
+    print(e);
+  }
 }
