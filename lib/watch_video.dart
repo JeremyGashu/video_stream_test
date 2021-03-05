@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:encryption_test/custom_video_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
@@ -302,15 +303,15 @@ logCallBack(Log log){
 }
 
 parseHLS() async {
-  final String fileData = await rootBundle.loadString('assets/play_test.m3u8');
-  // print(fileData.length);
-  Uri playlistUri;
-  var playList;
   try {
-    playList =
+    final String fileData =
+        await rootBundle.loadString('assets/master_playlist.m3u8');
+    Uri playlistUri;
+    var playlist;
+    playlist =
         await HlsPlaylistParser.create().parseString(playlistUri, fileData);
-  } on ParserException catch (e) {
+    return playlist;
+  } catch (e) {
     print(e);
   }
-  return playList;
 }
