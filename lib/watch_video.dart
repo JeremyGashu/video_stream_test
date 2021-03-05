@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:flutter_ffmpeg/log.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoApp extends StatefulWidget {
@@ -247,7 +251,7 @@ class _CustomControllerState extends State<CustomController> {
                   size: 35,
                   color: Colors.redAccent,
                 ),
-                onPressed: () {
+                onPressed: () async {
                   //download task will be added here
                   Scaffold.of(context).showSnackBar(SnackBar(
                     content: Text('Downloading...'),
@@ -255,7 +259,24 @@ class _CustomControllerState extends State<CustomController> {
                       milliseconds: 600,
                     ),
                   ));
-                },
+
+                  // Todo: start download here
+                  checkStoragePermission();
+                  var url = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+                  final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+                  final FlutterFFmpegConfig _flutterFFmpegConfig = new FlutterFFmpegConfig();
+                  _flutterFFmpegConfig.enableLogCallback(logCallBack);
+                  print('here');
+                  var directory = await getExternalStorageDirectory();
+                  // if(!await path.exists()){
+                  //   print("path doesn't exist creating path");
+                  //   path.create();
+                  // }else{
+                  //   print("path already exists continuing to download");
+                  // }
+                  print("path: ${directory.path}");
+                  _flutterFFmpeg.execute("-i $url -c copy -bsf:a aac_adtstoasc \"${directory.path}/test2.mp4\"");
+                  },
               ),
             ],
           ),
@@ -263,6 +284,21 @@ class _CustomControllerState extends State<CustomController> {
       ),
     );
   }
+}
+
+checkStoragePermission()async{
+  var status = await Permission.storage.status;
+  if(status.isUndetermined){
+    if (await Permission.storage.request().isGranted){
+    }else{
+      checkStoragePermission();
+    }
+  }
+}
+
+logCallBack(Log log){
+  print("${log.executionId}:${log.message}");
+
 }
 
 parseHLS() async {
