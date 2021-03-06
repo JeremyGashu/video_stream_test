@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:encryption_test/local_video_player.dart';
+import 'package:encryption_test/utils.dart';
 import 'package:encryption_test/watch_video.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
@@ -30,14 +34,36 @@ class Videos extends StatelessWidget {
                           return Card(
                               elevation: 10,
                               child: GestureDetector(
-                                onTap: () {
-                                  print(segment.url);
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return VideoApp(
-                                      videoLink: segment.url,
-                                    );
-                                  }));
+                                onTap: () async {
+                                  String fileName = segment.url.split('/').last;
+                                  String localPath = await localFilePath();
+                                  print(localPath);
+
+                                  var files = await getDownloadedFiles(context);
+                                  bool isDownloaded = files.any((file) =>
+                                      (fileName + '.aes' ==
+                                          file.path.split('/').last));
+                                  if (isDownloaded) {
+                                    print('Decrypting in progress...');
+                                    File decryptedPath = await decryptFile(
+                                        '$localPath/$fileName.aes');
+
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                LocalVideoPlayer(
+                                                    decryptedFile:
+                                                        decryptedPath)));
+                                  } else {
+                                    //todo if the file is not downloaded schedule download
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (context) {
+                                      return VideoApp(
+                                        videoLink: segment.url,
+                                      );
+                                    }));
+                                  }
                                 },
                                 child: Padding(
                                   padding: EdgeInsets.all(10),

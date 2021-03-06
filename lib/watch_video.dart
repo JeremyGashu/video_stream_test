@@ -1,17 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:aes_crypt/aes_crypt.dart';
 import 'package:encryption_test/custom_video_controller.dart';
+import 'package:encryption_test/utils.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_hls_parser/flutter_hls_parser.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
-
-final httpClient = new HttpClient();
 
 class VideoApp extends StatefulWidget {
   final String videoLink;
@@ -43,6 +37,21 @@ class _VideoAppState extends State<VideoApp> {
           mounted ? setState(() {}) : timer.cancel();
         });
       });
+
+    String newFileName = widget.videoLink.split('/').last;
+    downloadFile(widget.videoLink, newFileName, context)
+        .then((file) => encryptFile(file.path))
+        .then((_) {
+      localFilePath().then((path) {
+        File file = File('$path/$newFileName');
+        try {
+          file.deleteSync();
+          print('FILE DOWNLOADED, ENCRYPTED AND DELETED');
+        } catch (e) {
+          print(e);
+        }
+      });
+    });
     super.initState();
   }
 
@@ -87,7 +96,7 @@ class _VideoAppState extends State<VideoApp> {
                                     widget.videoLink.split('/').last;
 
                                 print('Download started');
-                                File downloadedFile = await _downloadFile(
+                                File downloadedFile = await downloadFile(
                                     widget.videoLink, newFileName, context);
                                 //do the encryption here
                                 print(
@@ -129,55 +138,5 @@ class _VideoAppState extends State<VideoApp> {
   void dispose() {
     super.dispose();
     _controller.dispose();
-  }
-}
-
-parseHLS() async {
-  try {
-    final String fileData =
-        await rootBundle.loadString('assets/play_test.m3u8');
-    Uri playlistUri;
-    var playlist;
-    playlist =
-        await HlsPlaylistParser.create().parseString(playlistUri, fileData);
-    return playlist;
-  } catch (e) {
-    print(e);
-  }
-}
-
-Future<File> _downloadFile(
-    String url, String filename, BuildContext context) async {
-  var request = await httpClient.getUrl(Uri.parse(url));
-  var response = await request.close();
-  var bytes = await consolidateHttpClientResponseBytes(response);
-  String dir = (Theme.of(context).platform == TargetPlatform.android
-          ? await getExternalStorageDirectory()
-          : await getApplicationDocumentsDirectory())
-      .path;
-  File file = new File('$dir/$filename');
-  await file.writeAsBytes(bytes);
-  return file;
-}
-
-encryptFile(String filePath) async {
-  var crypt = AesCrypt('auto_generate_for_later_use');
-  crypt.setOverwriteMode(AesCryptOwMode.rename);
-  try {
-    await crypt.encryptFile(filePath);
-    print('File encrypted...');
-  } catch (e) {
-    print(e);
-  }
-}
-
-decryptFile(String filePath) async {
-  var crypt = AesCrypt('auto_generate_for_later_use');
-  crypt.setOverwriteMode(AesCryptOwMode.rename);
-  try {
-    await crypt.decryptFile(filePath);
-    print('File Decrypted..');
-  } catch (e) {
-    print(e);
   }
 }

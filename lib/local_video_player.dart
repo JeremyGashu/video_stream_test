@@ -12,7 +12,10 @@ class LocalVideoPlayer extends StatefulWidget {
   _LocalVideoPlayerState createState() => _LocalVideoPlayerState();
 }
 
-class _LocalVideoPlayerState extends State<LocalVideoPlayer> {
+File localFile;
+
+class _LocalVideoPlayerState extends State<LocalVideoPlayer>
+    with WidgetsBindingObserver {
   VideoPlayerController _controller;
 
   @override
@@ -28,14 +31,36 @@ class _LocalVideoPlayerState extends State<LocalVideoPlayer> {
         });
       });
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('handling delete from pause state...');
+    if (state == AppLifecycleState.paused) {
+      try {
+        Navigator.pop(context);
+        widget.decryptedFile.deleteSync();
+      } catch (e) {}
+    }
+  }
+
+  @override
+  void dispose() {
+    print('handling delete from changing route and dispose...');
+    try {
+      widget.decryptedFile.deleteSync();
+    } catch (e) {}
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+    _controller.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print(_controller.value.initialized);
     return _controller.value.initialized
-        ? SafeArea(
-            child: Column(
+        ? Scaffold(
+            body: Column(
               children: [
                 AspectRatio(
                   aspectRatio: _controller.value.aspectRatio,
@@ -50,11 +75,22 @@ class _LocalVideoPlayerState extends State<LocalVideoPlayer> {
                     ),
                   ],
                 ),
+                Wrap(
+                  children: [
+                    Padding(
+                        padding: EdgeInsets.all(10), child: Text('Path ===>')),
+                    Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Text('${widget.decryptedFile.path}')),
+                  ],
+                ),
               ],
             ),
           )
-        : Center(
-            child: CircularProgressIndicator(),
+        : Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
   }
 }

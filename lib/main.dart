@@ -192,14 +192,21 @@ https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_4
 """;
 
 void main() async {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      primaryColor: Colors.red,
-    ),
-    home: HomeScreen(),
-  ));
+  runApp(MyApp());
   // await _localPath();
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: Colors.red,
+      ),
+      home: HomeScreen(),
+    );
+  }
 }
 
 class HomeScreen extends StatefulWidget {
