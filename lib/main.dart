@@ -1,6 +1,10 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:encryption_test/audioplayer/home.dart';
+import 'package:encryption_test/audioplayer/music_service.dart';
 import 'package:encryption_test/musics_page.dart';
 import 'package:encryption_test/videos.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 String mu38String = """
 #EXTM3U
@@ -191,13 +195,24 @@ https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_4
 """;
 
 void main() async {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      primaryColor: Colors.red,
-    ),
-    home: HomeScreen(),
-  ));
+  runApp(ChangeNotifierProvider(
+      create: (context) => MusicService(),
+      child: MyApp()));
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: Colors.red,
+      ),
+      home: AudioServiceWidget(
+        child: HomeScreen()
+      ),
+    );
+  }
 }
 
 class HomeScreen extends StatefulWidget {
@@ -211,12 +226,16 @@ class _HomeScreenState extends State<HomeScreen> {
     Videos(),
     MusicPage(),
     Placeholder(),
+    AudioServiceWidget(
+      child: AudioScreen(),
+    )
   ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _widgets[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -237,6 +256,11 @@ class _HomeScreenState extends State<HomeScreen> {
               label: '',
               icon: Icon(
                 Icons.file_download,
+              )),
+          BottomNavigationBarItem(
+              label: '',
+              icon: Icon(
+                Icons.play_circle_outline,
               ))
         ],
         currentIndex: _currentIndex,
