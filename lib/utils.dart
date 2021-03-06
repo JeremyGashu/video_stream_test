@@ -63,7 +63,6 @@ Future<List<FileSystemEntity>> getDownloadedFiles(BuildContext context) async {
       ? await getExternalStorageDirectory()
       : await getApplicationDocumentsDirectory();
   var files = directory.listSync();
-
   return files;
 }
 
