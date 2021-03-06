@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:encryption_test/example.dart';
 import 'package:encryption_test/musics_page.dart';
+import 'package:encryption_test/testdownload.dart';
 import 'package:encryption_test/videos.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 
 String mu38String = """
@@ -194,15 +197,30 @@ https://multiplatform-f.akamaihd.net/i/multi/april11/sintel/sintel-hd_,512x288_4
 """;
 
 void main() async {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      primaryColor: Colors.red,
-    ),
-    home: HomeScreen(),
-  ));
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterDownloader.initialize(
+      debug: true // optional: set false to disable printing logs to console
+  );
+  runApp(MyApp());
+  // runApp(MaterialApp(
+  //   debugShowCheckedModeBanner: false,
+  //   theme: ThemeData(
+  //     primaryColor: Colors.red,
+  //   ),
+  //   home: HomeScreen(),
+  // ));
   String a = await _localPath();
   print(a);
+}
+
+class MyApp extends StatelessWidget{
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return MaterialApp(
+      home: TestDownload(platform: Theme.of(context).platform,),
+    );
+  }
 }
 
 class HomeScreen extends StatefulWidget {

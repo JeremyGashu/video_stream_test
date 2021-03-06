@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:flutter_ffmpeg/log.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
@@ -45,11 +48,13 @@ class _VideoAppState extends State<VideoApp> {
         });
       });
     super.initState();
+
   }
 
   @override
   Widget build(BuildContext context) {
     GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+    var platform = Theme.of(context).platform;
     return Scaffold(
       key: _key,
       appBar: AppBar(
@@ -72,24 +77,25 @@ class _VideoAppState extends State<VideoApp> {
                           Expanded(
                             child: CustomController(
                               controller: _controller,
+                              platform: platform,
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 3, horizontal: 10),
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.file_download,
-                                size: 25,
-                                color: Colors.redAccent,
-                              ),
-                              onPressed: () async {
-                                File downloadedFile = await _downloadFile(
-                                    widget.videoLink, 'test.ts');
-                                print(downloadedFile);
-                              },
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: EdgeInsets.symmetric(
+                          //       vertical: 3, horizontal: 10),
+                          //   child: IconButton(
+                          //     icon: Icon(
+                          //       Icons.file_download,
+                          //       size: 25,
+                          //       color: Colors.redAccent,
+                          //     ),
+                          //     onPressed: () async {
+                          //       File downloadedFile = await _downloadFile(
+                          //           widget.videoLink, 'test.ts');
+                          //       print(downloadedFile);
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       ),
                     ],
@@ -172,17 +178,62 @@ class _CustomProgressBarIndicatorState
 }
 
 class CustomController extends StatefulWidget {
+  final platform;
   final VideoPlayerController controller;
-  CustomController({@required this.controller});
+
+  CustomController({@required this.controller, this.platform});
 
   @override
   _CustomControllerState createState() => _CustomControllerState();
 }
 
+class _TaskInfo {
+  final String id;
+  final String link;
+
+  String taskId;
+  int progress = 0;
+  DownloadTaskStatus status = DownloadTaskStatus.undefined;
+
+  _TaskInfo({this.id, this.link});
+}
+
+enum _DownloadStatus {
+  Downloading,
+  Failed,
+  Completed,
+  Idle
+}
+
+const debug = true;
+
 class _CustomControllerState extends State<CustomController> {
+  ReceivePort _port = ReceivePort();
+  List<Segment> segments;
+  List<_TaskInfo> tasks;
+  var _localPath;
+  bool _isLoading;
+  _DownloadStatus downloadStatus = _DownloadStatus.Idle;
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _bindBackgroundIsolate();
+
+    FlutterDownloader.registerCallback(downloadCallback);
+
+
+    _isLoading = true;
+
+    _prepare();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return _isLoading ? CircularProgressIndicator():  Container(
       height: 100,
       width: double.infinity,
       child: Column(
@@ -253,7 +304,7 @@ class _CustomControllerState extends State<CustomController> {
                           : null;
                     });
                   }),
-              IconButton(
+              downloadStatus == _DownloadStatus.Downloading ? CircularProgressIndicator() : IconButton(
                 icon: Icon(
                   Icons.file_download,
                   size: 35,
@@ -270,21 +321,25 @@ class _CustomControllerState extends State<CustomController> {
 
                   // Todo: start download here
                   checkStoragePermission();
-                  var url = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
-                  final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
-                  final FlutterFFmpegConfig _flutterFFmpegConfig = new FlutterFFmpegConfig();
-                  _flutterFFmpegConfig.enableLogCallback(logCallBack);
-                  print('here');
-                  var directory = await getExternalStorageDirectory();
+                  _requestDownload(tasks[0]);
+                  // var url = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+                  // final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
+                  // final FlutterFFmpegConfig _flutterFFmpegConfig = new FlutterFFmpegConfig();
+                  // _flutterFFmpegConfig.enableLogCallback(logCallBack);
+                  // print('here');
+                  // var directory = await getExternalStorageDirectory();
                   // if(!await path.exists()){
                   //   print("path doesn't exist creating path");
                   //   path.create();
                   // }else{
                   //   print("path already exists continuing to download");
                   // }
-                  print("path: ${directory.path}");
-                  _flutterFFmpeg.execute("-i $url -c copy -bsf:a aac_adtstoasc \"${directory.path}/test2.mp4\"");
-                  },
+                  // print("path: ${directory.path}");
+                  // _flutterFFmpeg.execute("-i $url -c copy -bsf:a aac_adtstoasc \"${directory.path}/test2.mp4\"");
+
+
+
+                },
               ),
             ],
           ),
@@ -292,6 +347,165 @@ class _CustomControllerState extends State<CustomController> {
       ),
     );
   }
+
+  void _unbindBackgroundIsolate() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+  }
+
+  void _bindBackgroundIsolate() {
+    bool isSuccess = IsolateNameServer.registerPortWithName(
+        _port.sendPort, 'downloader_send_port');
+
+    if (!isSuccess) {
+      _unbindBackgroundIsolate();
+      _bindBackgroundIsolate();
+      print("bind background isolate not successful");
+      return;
+    }else{
+      // print("bind background isolate successful");
+    }
+    // _port.listen((dynamic data){
+    //   print('Ui isolate callback: $data');
+    // }).onError((error){
+    //   print("error: ${error}");
+    // });
+    _port.listen((dynamic data) {
+      if (debug) {
+        print('UI Isolate Callback: $data');
+      }
+      print('listening');
+      String id = data[0];
+      DownloadTaskStatus status = data[1];
+      int progress = data[2];
+      if (tasks != null && tasks.isNotEmpty) {
+        final task = tasks.firstWhere((task) => task.taskId == id);
+        if (task != null) {
+          // setState(() {
+          //   task.status = status;
+          //   task.progress = progress;
+          // });
+          // todo update here
+          print("download status: $status");
+
+          if(status == DownloadTaskStatus.complete){
+            print("download status: complete");
+            var downloadingTaskIndex = tasks.indexWhere((element) => element.taskId == id);
+            print("download task index: $downloadingTaskIndex");
+            if(downloadingTaskIndex != -1 && downloadingTaskIndex < tasks.length - 2){
+              _requestDownload(tasks[downloadingTaskIndex+1]);
+            }else if (downloadingTaskIndex == tasks.length-1){
+              // _updateDownloadStatus(_DownloadStatus.Completed);
+              print("download finished");
+            }
+          }else if(status == DownloadTaskStatus.failed){
+            // _updateDownloadStatus(_DownloadStatus.Failed);
+            print("download failed");
+          }
+        }
+      }
+    });
+  }
+
+  Future<String> _findLocalPath() async {
+    final directory = widget.platform == TargetPlatform.android
+        ? await getExternalStorageDirectory()
+        : await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    super.dispose();
+  }
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    if (debug) {
+      print(
+          'Background Isolate Callback: task ($id) is in status ($status) and process ($progress)');
+    }
+    final SendPort _port =
+    IsolateNameServer.lookupPortByName('downloader_send_port');
+    print("sending");
+    _port.send([id, status, progress]);
+    print("sent");
+  }
+
+  void _updateDownloadStatus(_DownloadStatus status){
+    setState(() {
+      downloadStatus = status;
+    });
+  }
+
+  void _cancelDownload(_TaskInfo task) async {
+    await FlutterDownloader.cancel(taskId: task.taskId);
+  }
+
+  void _pauseDownload(_TaskInfo task) async {
+    await FlutterDownloader.pause(taskId: task.taskId);
+  }
+
+  void _resumeDownload(_TaskInfo task) async {
+    String newTaskId = await FlutterDownloader.resume(taskId: task.taskId);
+    task.taskId = newTaskId;
+  }
+
+  void _retryDownload(_TaskInfo task) async {
+    String newTaskId = await FlutterDownloader.retry(taskId: task.taskId);
+    task.taskId = newTaskId;
+  }
+
+  Future<bool> _openDownloadedFile(_TaskInfo task) {
+    return FlutterDownloader.open(taskId: task.taskId);
+  }
+
+  Future<Null> _prepare() async {
+    final _tasks = await FlutterDownloader.loadTasks();
+    int count = 0;
+    tasks = [];
+    segments = (await parseHLS()).segments;
+    // print("length: ${segments.length}");
+    tasks.addAll(segments
+        .map((e) => _TaskInfo(id: e.title, link: e.url)));
+    // todo added large mp4 file to test progress
+    tasks.insert(0, _TaskInfo(id: "some id", link: "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"));
+    _tasks?.forEach((task) {
+      for (_TaskInfo info in tasks) {
+        if (info.link == task.url) {
+          info.taskId = task.taskId;
+          info.status = task.status;
+          info.progress = task.progress;
+        }
+        // print("infoLink: ${info.link}");
+      }
+    });
+
+    await checkStoragePermission();
+
+    _localPath = (await _findLocalPath()) + Platform.pathSeparator + 'twoftime';
+
+    final savedDir = Directory(_localPath);
+    bool hasExisted = await savedDir.exists();
+    if (!hasExisted) {
+      savedDir.create();
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _requestDownload(_TaskInfo task) async {
+    task.taskId = await FlutterDownloader.enqueue(
+        url: task.link,
+        headers: {"auth": "test_for_sql_encoding"},
+        savedDir: _localPath,
+        showNotification: true,
+        openFileFromNotification: false);
+    _updateDownloadStatus(_DownloadStatus.Downloading);
+  }
+
 }
 
 checkStoragePermission()async{
@@ -304,19 +518,22 @@ checkStoragePermission()async{
   }
 }
 
+
+
 logCallBack(Log log){
   print("${log.executionId}:${log.message}");
-
 }
 
-parseHLS() async {
+Future<HlsMediaPlaylist> parseHLS() async {
   try {
     final String fileData =
         await rootBundle.loadString('assets/play_test.m3u8');
     Uri playlistUri;
-    var playlist;
+    HlsMediaPlaylist playlist;
     playlist =
         await HlsPlaylistParser.create().parseString(playlistUri, fileData);
+    List<Segment> segments = playlist.segments;
+    // print(segments[0].url);
     return playlist;
   } catch (e) {
     print(e);
