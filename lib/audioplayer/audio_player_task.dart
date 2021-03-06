@@ -117,7 +117,14 @@ class AudioPlayerTask extends BackgroundAudioTask {
           : AudioProcessingState.skippingToNext,
     );
 
-    await _audioPlayer.setUrl(_mediaItem.extras['source']);
+    if (_mediaItem.extras['source'].toString().startsWith('assets')) {
+      await _audioPlayer.setAsset(_mediaItem.extras['source']);
+    } else if (_mediaItem.extras['source'].toString().startsWith('/')) {
+      await _audioPlayer.setFilePath(_mediaItem.extras['source']);
+    } else {
+      await _audioPlayer.setUrl(_mediaItem.extras['source']);
+    }
+
     onUpdateMediaItem(_mediaItem);
     onPlay();
   }
@@ -164,7 +171,15 @@ class AudioPlayerTask extends BackgroundAudioTask {
     // Get queue index by mediaId.
     _queueIndex = _queue.indexWhere((test) => test.id == mediaId);
     // Set url source to _audioPlayer.
-    await _audioPlayer.setUrl(_mediaItem.extras['source']);
+
+    if (_mediaItem.extras['source'].toString().startsWith('assets')) {
+      await _audioPlayer.setAsset(_mediaItem.extras['source']);
+    } else if (_mediaItem.extras['source'].toString().startsWith('/')) {
+      await _audioPlayer.setFilePath(_mediaItem.extras['source']);
+    } else {
+      await _audioPlayer.setUrl(_mediaItem.extras['source']);
+    }
+
     onUpdateMediaItem(_mediaItem);
     onPlay();
   }

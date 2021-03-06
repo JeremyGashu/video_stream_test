@@ -261,6 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: '',
               icon: Icon(
                 Icons.play_circle_outline,
+                color: Colors.blue,
               ))
         ],
         currentIndex: _currentIndex,

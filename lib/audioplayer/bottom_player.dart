@@ -108,22 +108,28 @@ class _MiniPlayerState extends State<MiniPlayer> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  mediaItem.title,
-                  maxLines: 1,
-                  style: TextStyle(fontSize: 18),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  '${mediaItem.album} • ${mediaItem.artist}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: GestureDetector(
+              onTap: () {
+                _openNowPlaying();
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    mediaItem.title,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '${mediaItem.album} • ${mediaItem.artist}',
+                    maxLines: 2,
+                    style: TextStyle(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -135,6 +141,12 @@ class _MiniPlayerState extends State<MiniPlayer> {
             final playing = snapshot.data?.playing ?? false;
             return Row(
               children: <Widget>[
+                // skip to previous button
+                if (state != AudioProcessingState.stopped)
+                  IconButton(
+                    icon: Icon(Icons.skip_previous),
+                    onPressed: skipPrev,
+                  ),
                 // Play/pause button
                 IconButton(
                   icon: Icon(playing ? Icons.pause : Icons.play_arrow),
@@ -168,4 +180,6 @@ class _MiniPlayerState extends State<MiniPlayer> {
   pause() => AudioService.pause();
 
   skipNext() => AudioService.skipToNext();
+
+  skipPrev() => AudioService.skipToPrevious();
 }
