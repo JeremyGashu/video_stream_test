@@ -55,6 +55,7 @@ flutter:
     - assets/master_playlist.m3u8
     - assets/play_test.m3u8
     - assets/after.jpg
+    - assets/tears-of-steel-audio_eng=64008.m3u8
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
