@@ -63,7 +63,7 @@ class _OneFileState extends State<OneFile> {
                   setState(() {
                     textState = 'Downloading/Decrypting';
                   });
-                  await downloadEncryptDecrypt(context);
+                  downloadEncryptDecrypt(context);
 
                   while (!check) {
                     await Future.delayed(Duration(milliseconds: 300));
