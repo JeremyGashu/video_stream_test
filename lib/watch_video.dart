@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:encryption_test/custom_video_controller.dart';
 import 'package:encryption_test/utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -31,6 +30,8 @@ class _VideoAppState extends State<VideoApp> {
           _controller.setLooping(true);
         });
 
+        // _controller.ad
+
         // if (!mounted) return;
 
         Timer.periodic(Duration(seconds: 1), (timer) {
@@ -39,9 +40,9 @@ class _VideoAppState extends State<VideoApp> {
       });
 
     String newFileName = widget.videoLink.split('/').last;
-    downloadFile(widget.videoLink, newFileName, context)
-        .then((file) => encryptFile(file.path))
-        .then((_) {
+    downloadFile(widget.videoLink, newFileName, context).then((file) {
+      encryptFile(file.path);
+    }).then((_) {
       localFilePath().then((path) {
         File file = File('$path/$newFileName');
         try {
@@ -82,34 +83,34 @@ class _VideoAppState extends State<VideoApp> {
                               controller: _controller,
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 3, horizontal: 10),
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.file_download,
-                                size: 25,
-                                color: Colors.redAccent,
-                              ),
-                              onPressed: () async {
-                                String newFileName =
-                                    widget.videoLink.split('/').last;
-
-                                print('Download started');
-                                File downloadedFile = await downloadFile(
-                                    widget.videoLink, newFileName, context);
-                                //do the encryption here
-                                print(
-                                    'Download finished and encryption started');
-                                await encryptFile(downloadedFile.path);
-
-                                await downloadedFile.delete();
-
-                                print(
-                                    'File Downloaded, Encrypted and Deleted...');
-                              },
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: EdgeInsets.symmetric(
+                          //       vertical: 3, horizontal: 10),
+                          //   child: IconButton(
+                          //     icon: Icon(
+                          //       Icons.file_download,
+                          //       size: 25,
+                          //       color: Colors.redAccent,
+                          //     ),
+                          //     onPressed: () async {
+                          //       String newFileName =
+                          //           widget.videoLink.split('/').last;
+                          //
+                          //       print('Download started');
+                          //       File downloadedFile = await downloadFile(
+                          //           widget.videoLink, newFileName, context);
+                          //       //do the encryption here
+                          //       print(
+                          //           'Download finished and encryption started');
+                          //       await encryptFile(downloadedFile.path);
+                          //
+                          //       await downloadedFile.delete();
+                          //
+                          //       print(
+                          //           'File Downloaded, Encrypted and Deleted...');
+                          //     },
+                          //   ),
+                          // ),
                         ],
                       ),
                     ],

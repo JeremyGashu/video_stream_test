@@ -8,11 +8,11 @@ import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:path_provider/path_provider.dart';
 
 final httpClient = new HttpClient();
+bool check = false;
 
 parseHLS() async {
   try {
-    final String fileData =
-        await rootBundle.loadString('assets/play_test.m3u8');
+    final String fileData = await rootBundle.loadString('assets/test.m3u8');
     Uri playlistUri;
     var playlist;
     playlist =
@@ -79,5 +79,72 @@ Future<File> decryptFile(String filePath) async {
     // print('File Decrypted..');
   } catch (e) {
     print(e);
+  }
+}
+
+Future<List<String>> getFileNamesFromM3u8(String manifestName) async {
+  Uri playListUri;
+  String filePath = await localFilePath();
+  File m3u8File = File('$filePath/$manifestName');
+  String value = await m3u8File.readAsString();
+  HlsMediaPlaylist playlist =
+      await HlsPlaylistParser.create().parseString(playListUri, value);
+  return playlist.segments.map((segment) {
+    return segment.url.split('/').last;
+  }).toList();
+}
+
+Future<bool> decryptMultipleFiles(String manifestName) async {
+  List<String> fileNames = await getFileNamesFromM3u8(manifestName);
+  print('STARTED DECRYPTING MULTIPLE FILES');
+  try {
+    String filePath = await localFilePath();
+    fileNames.forEach((file) async {
+      String fullFilePath = '$filePath/$file.aes';
+      print(fullFilePath);
+      await decryptFile(fullFilePath);
+    });
+  } catch (e) {
+    // throw e;
+    return false;
+  }
+  return true;
+}
+
+Future<bool> allFilesDownloaded(List<String> fileNames) async {
+  String localPath = await localFilePath();
+  fileNames.forEach((fileName) {
+    File file = File('$localPath/$fileName');
+    if (!file.existsSync()) {
+      return false;
+    }
+  });
+  return true;
+}
+
+downloadEncryptDecrypt(context) async {
+  // Get the list of the files
+  // that must be downloaded
+  var playList = await parseHLS();
+  List<Segment> segments = playList.segments;
+
+  // get the directory to store the downloaded files
+  String dir = (Theme.of(context).platform == TargetPlatform.android
+          ? await getExternalStorageDirectory()
+          : await getApplicationDocumentsDirectory())
+      .path;
+
+  // Then give the list to the downloader
+  for (int i = 0; i < segments.length; i++) {
+    var filename = getFileNameFromPath(segments[i].url);
+    if (File('$dir/$filename.aes').existsSync()) {
+      await decryptFile('$dir/$filename.aes');
+      check = true;
+    } else {
+      await downloadFile(segments[i].url, filename, context);
+      await encryptFile('$dir/$filename');
+      await decryptFile('$dir/$filename.aes');
+      check = true;
+    }
   }
 }

@@ -39,8 +39,10 @@ class _LocalVideoPlayerState extends State<LocalVideoPlayer>
     print('handling delete from pause state...');
     if (state == AppLifecycleState.paused) {
       try {
+        if (widget.decryptedFile.path.split('.').last == 'ts') {
+          widget.decryptedFile.deleteSync();
+        }
         Navigator.pop(context);
-        widget.decryptedFile.deleteSync();
       } catch (e) {}
     }
   }
@@ -49,7 +51,9 @@ class _LocalVideoPlayerState extends State<LocalVideoPlayer>
   void dispose() {
     print('handling delete from changing route and dispose...');
     try {
-      widget.decryptedFile.deleteSync();
+      if (widget.decryptedFile.path.split('.').last == 'ts') {
+        widget.decryptedFile.deleteSync();
+      }
     } catch (e) {}
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
