@@ -44,23 +44,10 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   MediaItem get _mediaItem => _queue[_queueIndex];
 
-  // HlsAudioSource _hlsAudioSource = HlsAudioSource(
-  //     Uri.parse("http://demo.unified-streaming.com/video/tears-of-steel/" +
-  //         "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8"),
-  //     tag: AudioMetadata(
-  //       album: "Sample Album",
-  //       title: "Sample Audio",
-  //       artwork: "https://vgywm.com/wp-content/uploads/2019/07/" +
-  //           "apple-music-note-800x420.jpg",
-  //     ));
-
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
     // Get the shared preferences instance.
     prefs = await SharedPreferences.getInstance();
-
-    // await _audioPlayer.setAudioSource(_hlsAudioSource);
-    // _audioPlayer.play();
 
     // Audio playback event listener.
     playerEventSubscription = _audioPlayer.playbackEventStream.listen((event) {

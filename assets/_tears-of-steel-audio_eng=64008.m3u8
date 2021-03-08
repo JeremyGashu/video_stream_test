@@ -23,6 +23,4 @@ http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/
 #EXTINF:4, no desc
 http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-9.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-10.ts
-#EXTINF:4, no desc
 #EXT-X-ENDLIST

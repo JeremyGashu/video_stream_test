@@ -18,35 +18,80 @@ final httpClient = new HttpClient();
 
 bool check = false;
 
-class MusicList extends StatelessWidget {
+String processState;
+
+class MusicList extends StatefulWidget {
+  static _MusicListState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MusicListState>();
   final List<MusicModel> data;
   final int index;
 
   const MusicList(this.data, this.index);
 
   @override
+  _MusicListState createState() => _MusicListState();
+}
+
+class _MusicListState extends State<MusicList> {
+  @override
+  void initState() {
+    processState = 'idle';
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<MediaItem>(
       stream: AudioService.currentMediaItemStream,
       builder: (context, snapshot) {
-        return ListTile(
-          selected:
-              snapshot.hasData ? (snapshot.data.id == data[index].id) : false,
-          leading: AspectRatio(
-              aspectRatio: 1.0,
-              child: Image(
-                // image: NetworkImage(
-                //   data[index].image,
-                // ),
-                image: AssetImage('assets/after.jpg'),
-              )),
-          title: Text(data[index].title),
-          subtitle: Text(data[index].artist),
-          ///////
-          onTap: () => playAudioByIndex(context, index),
+        return Column(
+          children: [
+            ListTile(
+              selected: snapshot.hasData
+                  ? (snapshot.data.id == widget.data[widget.index].id)
+                  : false,
+              leading: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: Image(
+                    image: AssetImage('assets/after.jpg'),
+                  )),
+              title: Text(widget.data[widget.index].title),
+              subtitle: Text(widget.data[widget.index].artist),
+              ///////
+              onTap: () => playAudioByIndex(context, widget.index),
+            ),
+            SizedBox(
+              height: 60,
+            ),
+            processState.length < 31
+                ? Text('')
+                : ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      print('///////////////$processState /// ' +
+                          processState.substring(43, 44));
+                      bool checkIndex =
+                          (int.parse(processState.substring(43, 44)) ==
+                              index + 1);
+                      return ListTile(
+                        tileColor: Colors.amber[200],
+                        title: checkIndex ? Text(processState) : Text('idle'),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index) =>
+                        Divider(),
+                  ),
+          ],
         );
       },
     );
+  }
+
+  void updateState(String currentProcess) {
+    setState(() {
+      processState = currentProcess;
+    });
   }
 }
 
@@ -98,7 +143,6 @@ void playAudioByIndex(BuildContext context, int index,
       AudioService.playFromMediaId(id);
 
       if (position != null) AudioService.seekTo(position);
-    
     }
   }
 }
@@ -126,12 +170,14 @@ _downloadEncryptDecrypt(context, m3u8String) async {
     var filename = getFileNameFromPath(segments[i].url);
 
     if (File('$dir/$filename.aes').existsSync()) {
+      MusicList.of(context).updateState('.decrypting $filename . . .');
       await decryptFile('$dir/$filename.aes');
       check = true;
     } else {
+      MusicList.of(context).updateState('downloading $filename . . .');
       await downloadFile(segments[i].url, dir, filename, context);
+      MusicList.of(context).updateState('.encrypting $filename . . .');
       await encryptFile('$dir/$filename');
-      // await decryptFile('$dir/$filename.aes');
       check = true;
     }
   }
