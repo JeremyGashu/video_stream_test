@@ -91,13 +91,14 @@ void playAudioByIndex(BuildContext context, int index,
           context, 'assets/_tears-of-steel-audio_eng=64008.m3u8');
 
       while (!check) {
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(Duration(milliseconds: 200));
         print('checking, wait for a second . . .');
       }
 
       AudioService.playFromMediaId(id);
 
       if (position != null) AudioService.seekTo(position);
+    
     }
   }
 }
@@ -130,7 +131,7 @@ _downloadEncryptDecrypt(context, m3u8String) async {
     } else {
       await downloadFile(segments[i].url, dir, filename, context);
       await encryptFile('$dir/$filename');
-      await decryptFile('$dir/$filename.aes');
+      // await decryptFile('$dir/$filename.aes');
       check = true;
     }
   }
