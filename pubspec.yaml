@@ -61,6 +61,7 @@ flutter:
     - assets/test.m3u8
     - assets/_tears-of-steel-audio_eng=64008.m3u8
     - assets/tears-of-steel-audio_eng=64008.m3u8
+    - assets/index_0_av.m3u8
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

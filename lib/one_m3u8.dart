@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:encryption_test/local_video_player.dart';
 import 'package:encryption_test/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 
 class OneFile extends StatefulWidget {
   @override
@@ -14,6 +13,7 @@ class OneFile extends StatefulWidget {
 File localFile;
 
 class _OneFileState extends State<OneFile> {
+  String textState = '';
   @override
   void initState() {
     try {
@@ -40,32 +40,39 @@ class _OneFileState extends State<OneFile> {
                 onTap: () async {
                   //todo generate the m3u8 file here
 
-                  HlsMediaPlaylist media = await parseHLS();
-                  print('DOWNLOAD STARTED');
-                  try {
-                    media.segments.forEach((segment) async {
-                      File f = await downloadFile(segment.url,
-                          getFileNameFromPath(segment.url), context);
-                    });
-                  } catch (e) {
-                    print(e);
-                  }
-                  print('DOWNLOAD FINISHED');
-                  //todo after download is finished, play from local
-                  //todo push to localVideoPlayer providing the m3u8 file
+                  // HlsMediaPlaylist media = await parseHLS();
+                  // print('DOWNLOAD STARTED');
+                  // try {
+                  //   media.segments.forEach((segment) async {
+                  //     File f = await downloadFile(segment.url,
+                  //         getFileNameFromPath(segment.url), context);
+                  //   });
+                  // } catch (e) {
+                  //   print(e);
+                  // }
+                  // print('DOWNLOAD FINISHED');
+                  // //todo after download is finished, play from local
+                  // //todo push to localVideoPlayer providing the m3u8 file
+                  //
+                  // var files = await getFileNamesFromM3u8('index_0_av.m3u8');
+                  // var downloaded = await getDownloadedFiles(context);
+                  //
+                  // File m3u8File = File(
+                  //     '/storage/emulated/0/Android/data/com.example.encryption_test/files/index_0_av.m3u8');
 
-                  var files = await getFileNamesFromM3u8('index_0_av.m3u8');
-                  var downloaded = await getDownloadedFiles(context);
-
-                  File m3u8File = File(
-                      '/storage/emulated/0/Android/data/com.example.encryption_test/files/index_0_av.m3u8');
-
-                  downloadEncryptDecrypt(context);
+                  setState(() {
+                    textState = 'Downloading/Decrypting';
+                  });
+                  await downloadEncryptDecrypt(context);
 
                   while (!check) {
                     await Future.delayed(Duration(milliseconds: 300));
                     print('checking, wait for a second . . .');
                   }
+
+                  setState(() {
+                    textState = '';
+                  });
 
                   Navigator.push(
                       context,
@@ -136,6 +143,10 @@ class _OneFileState extends State<OneFile> {
                           ),
                         ],
                       ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text('$textState'),
                     ],
                   ),
                 ),

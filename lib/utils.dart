@@ -134,6 +134,10 @@ downloadEncryptDecrypt(context) async {
           : await getApplicationDocumentsDirectory())
       .path;
 
+  final fileData = await rootBundle.load('assets/index_0_av.m3u8');
+  var fileDir = '$dir/index_0_av.m3u8';
+  writeToFile(fileData, fileDir);
+
   // Then give the list to the downloader
   for (int i = 0; i < segments.length; i++) {
     var filename = getFileNameFromPath(segments[i].url);
@@ -147,4 +151,10 @@ downloadEncryptDecrypt(context) async {
       check = true;
     }
   }
+}
+
+void writeToFile(ByteData data, String path) {
+  final buffer = data.buffer;
+  return new File(path).writeAsBytesSync(
+      buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
 }

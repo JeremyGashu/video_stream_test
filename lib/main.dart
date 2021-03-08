@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:encryption_test/audioplayer/home.dart';
 import 'package:encryption_test/audioplayer/music_service.dart';
@@ -5,11 +7,15 @@ import 'package:encryption_test/one_m3u8.dart';
 import 'package:encryption_test/play_from_file.dart';
 import 'package:encryption_test/videos.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
+import 'utils.dart';
 
 void main() async {
   runApp(ChangeNotifierProvider(
       create: (context) => MusicService(), child: MyApp()));
+  _writeFile();
 }
 
 class MyApp extends StatelessWidget {
@@ -85,5 +91,15 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentIndex,
       ),
     );
+  }
+}
+
+_writeFile() async {
+  final fileData = await rootBundle.load('assets/index_0_av.m3u8');
+  var fileDir =
+      '/storage/emulated/0/Android/data/com.example.encryption_test/files/index_0_av.m3u8';
+  File f = File(fileDir);
+  if (!f.existsSync()) {
+    writeToFile(fileData, fileDir);
   }
 }
