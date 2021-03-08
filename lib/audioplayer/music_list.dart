@@ -88,7 +88,7 @@ void playAudioByIndex(BuildContext context, int index,
       await AudioService.updateQueue(queue);
 
       _downloadEncryptDecrypt(
-          context, 'assets/tears-of-steel-audio_eng=64008.m3u8');
+          context, 'assets/_tears-of-steel-audio_eng=64008.m3u8');
 
       while (!check) {
         await Future.delayed(Duration(milliseconds: 300));
@@ -103,16 +103,22 @@ void playAudioByIndex(BuildContext context, int index,
 }
 
 _downloadEncryptDecrypt(context, m3u8String) async {
-  // Get the list of the files
-  // that must be downloaded
-  var playList = await parseHLS(m3u8String);
-  List<Segment> segments = playList.segments;
-
   // get the directory to store the downloaded files
   String dir = (Theme.of(context).platform == TargetPlatform.android
           ? await getExternalStorageDirectory()
           : await getApplicationDocumentsDirectory())
       .path;
+
+  // write the .m3u8 file to local storage
+  final fileData =
+      await rootBundle.load('assets/tears-of-steel-audio_eng=64008.m3u8');
+  var fileDir = '$dir/tears-of-steel-audio_eng=64008.m3u8';
+  writeToFile(fileData, fileDir);
+
+  // Get the list of the files
+  // that must be downloaded
+  var playList = await parseHLS(m3u8String);
+  List<Segment> segments = playList.segments;
 
   // Then give the list to the downloader
   for (int i = 0; i < segments.length; i++) {
@@ -128,6 +134,12 @@ _downloadEncryptDecrypt(context, m3u8String) async {
       check = true;
     }
   }
+}
+
+void writeToFile(ByteData data, String path) {
+  final buffer = data.buffer;
+  return new File(path).writeAsBytesSync(
+      buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
 }
 
 Future<File> decryptFile(String filePath) async {

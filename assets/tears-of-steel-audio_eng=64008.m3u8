@@ -5,16 +5,23 @@
 #EXT-X-TARGETDURATION:4
 #USP-X-TIMESTAMP-MAP:MPEGTS=900000,LOCAL=1970-01-01T00:00:00Z
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-1.ts
+tears-of-steel-audio_eng=64008-1.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-2.ts
+tears-of-steel-audio_eng=64008-2.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-3.ts
+tears-of-steel-audio_eng=64008-3.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-4.ts
+tears-of-steel-audio_eng=64008-4.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-5.ts
+tears-of-steel-audio_eng=64008-5.ts
 #EXTINF:4, no desc
-http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008-6.ts
+tears-of-steel-audio_eng=64008-6.ts
 #EXTINF:4, no desc
+tears-of-steel-audio_eng=64008-7.ts
+#EXTINF:4, no desc
+tears-of-steel-audio_eng=64008-8.ts
+#EXTINF:4, no desc
+tears-of-steel-audio_eng=64008-9.ts
+#EXTINF:4, no desc
+tears-of-steel-audio_eng=64008-10.ts
 #EXT-X-ENDLIST
