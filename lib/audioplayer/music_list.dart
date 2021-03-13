@@ -115,8 +115,8 @@ void playAudioByIndex(BuildContext context, int index,
       androidEnableQueue: true,
     )) {
       final queue = catalog.items.map((catalog) {
-        String filename = getFileNameFromPath(catalog.source);
-        String filepath = dir + '/' + filename;
+        // String filename = getFileNameFromPath(catalog.source);
+        String filepath = dir + '/' + 'tears-of-steel-audio_eng=64008.m3u8';
         return MediaItem(
             id: catalog.id,
             album: catalog.album,

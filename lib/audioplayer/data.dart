@@ -19,7 +19,7 @@ List<MusicModel> musicList = [
       artist: "The Kyoto Connection",
       genre: "Electronic",
       source:
-          "206.189.251.70/interface/stream/1/hjklhdsflhdofahjfha/",
+          "http://206.189.251.70/interface/stream/1/hjklhdsflhdofahjfha/",
       // source:
       //     "http://demo.unified-streaming.com/video/tears-of-steel/" +
       //     "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8",
