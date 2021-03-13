@@ -70,10 +70,10 @@ class _MusicListState extends State<MusicList> {
                     itemCount: 10,
                     itemBuilder: (context, index) {
                       print('///////////////$processState /// ' +
-                          processState.substring(43, 44));
+                          processState.substring(4, 5));
                       bool checkIndex =
-                          (int.parse(processState.substring(43, 44)) ==
-                              index + 1);
+                          (int.parse(processState.substring(4, 5)) ==
+                              index);
                       return ListTile(
                         tileColor: Colors.amber[200],
                         title: checkIndex ? Text(processState) : Text('idle'),

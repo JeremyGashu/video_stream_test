@@ -19,8 +19,10 @@ List<MusicModel> musicList = [
       artist: "The Kyoto Connection",
       genre: "Electronic",
       source:
-          "http://demo.unified-streaming.com/video/tears-of-steel/" +
-          "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8",
+          "206.189.251.70/interface/stream/1/hjklhdsflhdofahjfha/",
+      // source:
+      //     "http://demo.unified-streaming.com/video/tears-of-steel/" +
+      //     "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8",
       image:
           "https://storage.googleapis.com/uamp/Kai_Engel_-_Irsens_Tale/art.jpg",
       duration: 180,
