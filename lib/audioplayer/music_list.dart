@@ -63,25 +63,36 @@ class _MusicListState extends State<MusicList> {
             SizedBox(
               height: 60,
             ),
-            processState.length < 31
-                ? Text('')
-                : ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      print('///////////////$processState /// ' +
-                          processState.substring(4, 5));
-                      bool checkIndex =
-                          (int.parse(processState.substring(4, 5)) ==
-                              index);
-                      return ListTile(
-                        tileColor: Colors.amber[200],
-                        title: checkIndex ? Text(processState) : Text('idle'),
-                      );
-                    },
-                    separatorBuilder: (BuildContext context, int index) =>
-                        Divider(),
-                  ),
+            processState.length < 8
+                ? SingleChildScrollView(child: Text(''))
+                : SingleChildScrollView(
+                  child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: 10,
+                      itemBuilder: (context, index) {
+                        print('///////////////$processState /// ' +
+                            processState
+                                .split(' ')
+                                .last
+                                .split('.')
+                                .first
+                                .substring(4));
+                        bool checkIndex = (int.parse(processState
+                                .split(' ')
+                                .last
+                                .split('.')
+                                .first
+                                .substring(4)) ==
+                            index);
+                        return ListTile(
+                          tileColor: Colors.amber[200],
+                          title: checkIndex ? Text(processState) : Text('idle'),
+                        );
+                      },
+                      separatorBuilder: (BuildContext context, int index) =>
+                          Divider(),
+                    ),
+                ),
           ],
         );
       },
@@ -170,13 +181,13 @@ _downloadEncryptDecrypt(context, m3u8String) async {
     var filename = getFileNameFromPath(segments[i].url);
 
     if (File('$dir/$filename.aes').existsSync()) {
-      MusicList.of(context).updateState('.decrypting $filename . . .');
+      MusicList.of(context).updateState('.decrypting $filename');
       await decryptFile('$dir/$filename.aes');
       check = true;
     } else {
-      MusicList.of(context).updateState('downloading $filename . . .');
+      MusicList.of(context).updateState('downloading $filename');
       await downloadFile(segments[i].url, dir, filename, context);
-      MusicList.of(context).updateState('.encrypting $filename . . .');
+      MusicList.of(context).updateState('.encrypting $filename');
       await encryptFile('$dir/$filename');
       check = true;
     }

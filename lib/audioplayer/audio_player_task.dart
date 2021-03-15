@@ -58,6 +58,12 @@ class AudioPlayerTask extends BackgroundAudioTask {
         case ProcessingState.buffering:
           _setState(state: AudioProcessingState.buffering);
           break;
+        case ProcessingState.loading:
+          _setState(state: AudioProcessingState.buffering);
+          break;
+        case ProcessingState.idle:
+          _setState(state: AudioProcessingState.none);
+          break;
         case ProcessingState.completed:
           _handlePlaybackCompleted();
           break;
