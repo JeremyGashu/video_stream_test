@@ -35,7 +35,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   List<MediaItem> _queue = [];
   StreamSubscription playerEventSubscription;
-  // bool _interrupted = false;
   SharedPreferences prefs;
 
   bool get hasNext => _queueIndex + 1 < _queue.length;
@@ -243,25 +242,3 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 }
 
-// <MediaItem>[
-//     MediaItem(
-//       id: "http://demo.unified-streaming.com/video/tears-of-steel/" +
-//           "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8",
-//       album: "Sample Album",
-//       title: "The first title",
-//       artist: "The artisit",
-//       duration: Duration(milliseconds: 5739820),
-//       artUri: "https://vgywm.com/wp-content/uploads/2019/07/" +
-//           "apple-music-note-800x420.jpg",
-//     ),
-//     MediaItem(
-//       id: "http://demo.unified-streaming.com/video/tears-of-steel/" +
-//           "tears-of-steel.ism/.m3u8/tears-of-steel-audio_eng=64008.m3u8",
-//       album: "Sample Album",
-//       title: "The second title",
-//       artist: "The artist",
-//       duration: Duration(milliseconds: 2856950),
-//       artUri: "https://vgywm.com/wp-content/uploads/2019/07/" +
-//           "apple-music-note-800x420.jpg",
-//     ),
-//   ];

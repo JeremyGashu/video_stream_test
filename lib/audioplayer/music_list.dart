@@ -1,10 +1,13 @@
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:encryption_test/audioplayer/music_model.dart';
 import 'package:encryption_test/audioplayer/music_service.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_aes_ecb_pkcs5/flutter_aes_ecb_pkcs5.dart';
 
 import 'package:aes_crypt/aes_crypt.dart';
 import 'package:flutter/foundation.dart';
@@ -66,7 +69,7 @@ class _MusicListState extends State<MusicList> {
             processState.length < 8
                 ? SingleChildScrollView(child: Text(''))
                 : SingleChildScrollView(
-                  child: ListView.separated(
+                    child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: 10,
                       itemBuilder: (context, index) {
@@ -92,7 +95,7 @@ class _MusicListState extends State<MusicList> {
                       separatorBuilder: (BuildContext context, int index) =>
                           Divider(),
                     ),
-                ),
+                  ),
           ],
         );
       },
@@ -171,6 +174,29 @@ _downloadEncryptDecrypt(context, m3u8String) async {
   var fileDir = '$dir/tears-of-steel-audio_eng=64008.m3u8';
   writeToFile(fileData, fileDir);
 
+  // write the .key file to local storage
+  final fileKey = '$dir/1.key';
+  Uint8List key1 = Uint8List.fromList([
+    248,
+    92,
+    124,
+    156,
+    203,
+    141,
+    195,
+    249,
+    112,
+    141,
+    132,
+    238,
+    59,
+    194,
+    90,
+    25
+  ]);
+  var file = File(fileKey);
+  file.writeAsBytes(key1);
+
   // Get the list of the files
   // that must be downloaded
   var playList = await parseHLS(m3u8String);
@@ -182,7 +208,7 @@ _downloadEncryptDecrypt(context, m3u8String) async {
 
     if (File('$dir/$filename.aes').existsSync()) {
       MusicList.of(context).updateState('.decrypting $filename');
-      await decryptFile('$dir/$filename.aes');
+      // await decryptFile('$dir/$filename.aes');
       check = true;
     } else {
       MusicList.of(context).updateState('downloading $filename');
@@ -214,15 +240,66 @@ Future<File> decryptFile(String filePath) async {
 }
 
 Future<String> encryptFile(String filePath) async {
-  var crypt = AesCrypt('auto_generate_for_later_use');
-  crypt.setOverwriteMode(AesCryptOwMode.rename);
+  // var crypt = AesCrypt('auto_generate_for_later_use');
+  // crypt.setOverwriteMode(AesCryptOwMode.rename);
+  // try {
+  //   String encrypted = await crypt.encryptFile(filePath);
+  //   print('///////////////////File Encrypted');
+  //   return encrypted;
+  // } catch (e) {
+  //   print('From the Encrypt function ' + e.toString());
+  //   return null;
+  // }
+  AesCrypt aesCrypt = AesCrypt();
+  Uint8List key = Uint8List.fromList([
+    248,
+    92,
+    124,
+    156,
+    203,
+    141,
+    195,
+    249,
+    112,
+    141,
+    132,
+    238,
+    59,
+    194,
+    90,
+    25
+  ]);
+  Uint8List iv = Uint8List.fromList([
+    46,
+    223,
+    139,
+    95,
+    209,
+    124,
+    115,
+    157,
+    24,
+    235,
+    39,
+    57,
+    255,
+    16,
+    75,
+    201
+  ]);
+
+  aesCrypt.aesSetKeys(key, iv);
+  aesCrypt.setOverwriteMode(AesCryptOwMode.rename);
   try {
-    String encrypted = await crypt.encryptFile(filePath);
-    print('///////////////////File Encrypted');
+    String encrypted = await aesCrypt.encryptFile(filePath);
+    var oldfile = File(filePath);
+    await oldfile.delete();
+    var file = File('$filePath.aes');
+    await file.rename(filePath);
     return encrypted;
-  } catch (e) {
-    print('From the Encrypt function ' + e.toString());
-    return null;
+  } catch (e, st) {
+    print(e.toString());
+    print(st);
   }
 }
 
